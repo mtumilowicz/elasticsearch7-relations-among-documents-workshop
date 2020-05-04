@@ -6,7 +6,7 @@
 POST person-object/_create/1
 {
     "name": "Michal",
-    "surname": "Tumilowicz"
+    "surname": "Tumilowicz",
     "address": {
         "street": "Tamka",
         "city": "Warsaw"
@@ -30,23 +30,15 @@ PUT person-object
 }
 
 GET person-object/_search
-"query": {
-    "bool": {
-        "must": [
-            {
-                "match": {
-                    "name": "Michal"
-                }
-            },
-            {
-                "match": {
-                    "address.street": "Tamka"
-                }
-                "match": {
-                    "address.city": "Warsaw"
-                }
-            }
-        ]
+{
+    "query": {
+        "bool": {
+            "must": [
+                { "match": { "name": "Michal" } },
+                { "match": { "address.street": "Tamka" } },
+                { "match": { "address.city": "Warsaw" } }
+            ]
+        }
     }
 }
 ### array
@@ -95,6 +87,51 @@ GET programming-groups/_search
                         "events.date": {
                             "from": "2018-01-01",
                             "to": "2019-01-01"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+## nested
+
+### object
+PUT person-nested
+{
+    "mappings": {
+        "properties": { 
+            "name": { "type": "text" },
+            "surname": { "type": "text" },
+            "address": {
+                "type": "nested",
+                "properties": {
+                    "street": { "type": "text" },
+                    "city": { "type": "text" }
+                }
+            }
+        }
+    }
+}
+
+// run this query against person-object
+GET person-nested/_search
+{
+    "query": {
+        "bool": {
+            "must": [
+                { "match": { "name": "Michal" } },
+                { 
+                    "nested": {
+                        "path": "address",
+                        "query" : {
+                            "bool": {
+                                "must": [
+                                    { "match": { "address.street": "Tamka" } },
+                                    { "match": { "address.city": "Warsaw" } }
+                                ]
+                            }
                         }
                     }
                 }
