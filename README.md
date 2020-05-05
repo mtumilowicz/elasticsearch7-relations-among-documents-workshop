@@ -129,6 +129,9 @@ searching.
 * Because nested documents are
   stuck together, updating or adding one inner document requires re-indexing the
   whole ensemble
+* Using the nested-type
+  approach, Elasticsearch will have to re-index the group documents with the new event
+  and all existing events, which is much slower.
 ### object
 PUT person-nested
 {
