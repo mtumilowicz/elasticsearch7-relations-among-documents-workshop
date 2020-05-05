@@ -1,6 +1,8 @@
 * https://www.factweavers.com/blog/join-in-elasticsearch/
 * https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-request-body.html#request-body-search-inner-hits
 * https://www.waitingforcode.com/elasticsearch/reverse-nested-aggregation-in-elasticsearch/read
+* https://www.elastic.co/guide/en/elasticsearch/reference/current/parent-join.html
+* https://blog.mimacom.com/parent-child-elasticsearch/
 
 ## object
 ### object
@@ -276,5 +278,267 @@ GET programming-groups-nested/_search
                 }
             ]
         }
-    }   
+    }   d
+}
+
+### aggregations
+PUT league
+{
+   "mappings":{
+         "properties":{
+            "name":{ "type":"keyword" },
+            "players":{
+               "type":"nested",
+               "properties":{
+                  "identity":{ "type":"text" },
+                  "games":{ "type":"byte" },
+                  "nationality":{ "type":"text" }
+               }
+            }
+         }
+   }
+}
+
+POST league/_doc
+{
+    "name": "Team 1", 
+    "players": [
+            {"identity": "Player_1", "games": 30, "nationality": "FR"},
+            {"identity": "Player_2", "games": 15, "nationality": "DE"},
+            {"identity": "Player_3", "games": 34, "nationality": "FR"},
+            {"identity": "Player_4", "games": 11, "nationality": "BR"},
+            {"identity": "Player_5", "games": 4, "nationality": "BE"},
+            {"identity": "Player_6", "games": 11, "nationality": "FR"}
+    ]
+}
+POST league/_doc
+{
+    "name": "Team 2", 
+    "players": [
+        {"identity": "Player_20", "games": 11, "nationality": "FR"},
+        {"identity": "Player_21", "games": 15, "nationality": "FR"},
+        {"identity": "Player_22", "games": 34, "nationality": "FR"},
+        {"identity": "Player_23", "games": 30, "nationality": "FR"},
+        {"identity": "Player_24", "games": 4, "nationality": "FR"},
+        {"identity": "Player_25", "games": 11, "nationality": "FR"}
+    ]
+}
+POST league/_doc 
+{
+    "name": "Team 3", 
+    "players": [
+        {"identity": "Player_30", "games": 11, "nationality": "FR"},
+        {"identity": "Player_31", "games": 15, "nationality": "FR"},
+        {"identity": "Player_32", "games": 12, "nationality": "FR"},
+        {"identity": "Player_33", "games": 15, "nationality": "FR"},
+        {"identity": "Player_34", "games": 4, "nationality": "FR"},
+        {"identity": "Player_35", "games": 11, "nationality": "FR"}
+    ]
+}
+POST league/_doc
+{
+    "name": "Team 3", 
+    "players": [
+        {"identity": "Player_30", "games": 11, "nationality": "FR"},
+        {"identity": "Player_31", "games": 15, "nationality": "FR"},
+        {"identity": "Player_32", "games": 12, "nationality": "FR"},
+        {"identity": "Player_33", "games": 15, "nationality": "FR"},
+        {"identity": "Player_34", "games": 4, "nationality": "FR"},
+        {"identity": "Player_35", "games": 11, "nationality": "FR"}
+    ]
+} 
+
+how many players in each team played in at least 30 games?
+*     "size": 0, // https://www.elastic.co/guide/en/elasticsearch/reference/current/returning-only-agg-results.html
+GET league/_search
+{
+    "size": 0,
+    "aggs":{
+        "by_team":{
+            "terms":{ "field":"name" },
+            "aggs":{
+                "at_least_30_games":{
+                    "nested":{ "path":"players" },
+                    "aggs":{
+                        "count_players":{
+                            "filter":{
+                                "range":{
+                                    "players.games":{ "gte":30 }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+how many teams have players who played in at least 30 games?
+
+GET league/_search
+{
+    "size": 0,
+    "aggs":{
+        "by_team":{
+            "terms":{"field":"name"},
+            "aggs":{
+                "at_least_30_games":{
+                    "nested":{"path":"players"},
+                    "aggs":{
+                        "count_players":{
+                            "filter":{
+                                "range":{
+                                    "players.games":{"gte":30}
+                                }
+                            },
+                            "aggs":{
+                                "team_has_players_at_least_30_games":{
+                                    "reverse_nested":{}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+## join
+* The join datatype is a special field that creates parent/child relation within documents of the same index
+
+PUT /music-5_6
+{
+    "mappings": {
+        "properties": {
+            "artist": { "type": "text" },
+            "song": { "type": "text" },
+            "user": { "type": "keyword" },
+            "artist_relations": {
+                "type": "join",
+                "relations": {
+                    "artist": "song",
+                    "song": "user"
+                }
+            }
+        }
+    }
+}
+
+POST /music-5_6/_bulk
+{"index":{"_id":1}}
+{"name":"John Legend","artist_relations":{"name":"artist"}}
+{"index":{"_id":2}}
+{"name":"Ariana Grande","artist_relations":{"name":"artist"}}
+
+POST music-5_6/_doc/3?routing=1
+{"song":"All of Me","artist_relations":{"name":"song","parent":1}}
+
+POST music-5_6/_doc/4?routing=1
+{"song":"Beauty and the Beast","artist_relations":{"name":"song","parent":1}}
+
+POST music-5_6/_doc/5?routing=2
+{"song":"Beauty and the Beast","artist_relations":{"name":"song","parent":2}}
+
+POST music-5_6/_bulk?routing=3
+{"index":{"_id":"l-1"}}
+{"user":"Gabriel","artist_relations":{"name":"user","parent":3}}
+{"index":{"_id":"l-2"}}
+{"user":"Berte","artist_relations":{"name":"user","parent":3}}
+{"index":{"_id":"l-3"}}
+{"user":"Emma","artist_relations":{"name":"user","parent":3}}
+
+POST music-5_6/_create/l-4?routing=4
+{"user":"Berte","artist_relations":{"name":"user","parent":4}}
+POST music-5_6/_create/l-5?routing=5
+{"user":"Emma","artist_relations":{"name":"user","parent":5}}
+
+Search for all songs (child) of an artist (parent).
+
+GET music-5_6/_search
+{
+  "query": {
+    "has_parent": {
+      "parent_type": "artist",
+      "query": { "match": { "name": "John Legend" } }
+    }
+  }
+}
+
+search for all user-likes (grandchild of the artist) of a song (child of the artist)
+GET music-5_6/_search
+{
+  "query": {
+    "has_parent": {
+      "parent_type": "song",
+      "query": {
+        "match": { "song": "all of Me" }
+      }
+    }
+  }
+}
+
+Searching for all artists (parents) that have one to ten (min_children and max_children) songs
+GET music/_search
+{
+  "query": {
+    "has_child": {
+      "type": "song",
+      "min_children": 1, "max_children": 10, 
+      "query": { "match_all": {} }
+    }
+  }
+}
+
+access a child document
+GET music-5_6/_doc/3?routing=1
+{
+  "_index": "music-5_6",
+  "_type": "doc",
+  "_id": "3",
+  "_version": 3,
+  "_routing": "1",
+  "found": true,
+  "_source": {
+    "song": "All of Me",
+    "artist_relations": {
+      "name": "song",
+      "parent": 1
+    }
+  }
+}
+
+* Updating Child Documents
+    * One of the significant benefits of a parent-child relationship is the ability to modify a child 
+    object independent of the parent.
+POST music-5_6/_update/5?routing=2
+{
+ "song": "Beauty and the Beast (2017)"
+}
+
+### Aggregations
+* count of user likes and see the user names that liked that song
+
+GET music-5_6/_search
+{
+    "query":{
+        "bool":{
+            "must": {"match":{"song":"Beauty and the Beast"}},
+            "should":{
+                "has_child":{
+                    "type":"user",
+                    "query":{
+                        "match_all":{}
+                    },
+                    "inner_hits":{}
+                }
+            }
+        }
+    },
+    "aggs":{
+        "user_likes":{
+              "children":{"type":"user"}
+        }
+    }
 }
