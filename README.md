@@ -417,12 +417,12 @@ PUT jukebox
         "properties": {
             "artist": { "type": "text" },
             "song": { "type": "text" },
-            "user": { "type": "keyword" },
+            "chosen_by": { "type": "keyword" },
             "jukebox_relations": {
                 "type": "join",
                 "relations": {
                     "artist": "song",
-                    "song": "user"
+                    "song": "chosen_by"
                 }
             }
         }
@@ -455,21 +455,21 @@ POST jukebox/_doc/5?routing=2
 
 POST jukebox/_bulk?routing=3
 {"index":{"_id":"l-1"}}
-{"user":"Gabriel","jukebox_relations":{"name":"user","parent":3}}
+{"user":"Gabriel","jukebox_relations":{"name":"chosen_by","parent":3}}
 {"index":{"_id":"l-2"}}
-{"user":"Berte","jukebox_relations":{"name":"user","parent":3}}
+{"user":"Berte","jukebox_relations":{"name":"chosen_by","parent":3}}
 {"index":{"_id":"l-3"}}
-{"user":"Emma","jukebox_relations":{"name":"user","parent":3}}
+{"user":"Emma","jukebox_relations":{"name":"chosen_by","parent":3}}
 
 POST jukebox/_create/l-4?routing=4
 {
     "user": "Berte",
-    "jukebox_relations": { "name": "user", "parent": 4 }
+    "jukebox_relations": { "name": "chosen_by", "parent": 4 }
 }
 POST jukebox/_create/l-5?routing=5
 {
     "user": "Emma",
-    "jukebox_relations": { "name": "user", "parent": 5 }
+    "jukebox_relations": { "name": "chosen_by", "parent": 5 }
 }
 
 Search for all songs (child) of an artist (parent).
@@ -533,7 +533,7 @@ GET jukebox/_search
             "must": { "match": { "song": "Beauty and the Beast" } },
             "should":{
                 "has_child": {
-                    "type": "user",
+                    "type": "chosen_by",
                     "query": { "match_all":{} },
                     "inner_hits": {}
                 }
@@ -541,6 +541,6 @@ GET jukebox/_search
         }
     },
     "aggs":{
-        "user_likes": { "children": { "type": "user" } }
+        "user_likes": { "children": { "type": "chosen_by" } }
     }
 }
