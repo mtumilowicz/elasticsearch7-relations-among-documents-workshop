@@ -411,14 +411,14 @@ GET league/_search
 ## join
 * The join datatype is a special field that creates parent/child relation within documents of the same index
 
-PUT /music-5_6
+PUT jukebox
 {
     "mappings": {
         "properties": {
             "artist": { "type": "text" },
             "song": { "type": "text" },
             "user": { "type": "keyword" },
-            "artist_relations": {
+            "jukebox_relations": {
                 "type": "join",
                 "relations": {
                     "artist": "song",
@@ -429,119 +429,118 @@ PUT /music-5_6
     }
 }
 
-POST /music-5_6/_bulk
+POST /jukebox/_bulk
 {"index":{"_id":1}}
-{"name":"John Legend","artist_relations":{"name":"artist"}}
+{"name":"John Legend","jukebox_relations":{"name":"artist"}}
 {"index":{"_id":2}}
-{"name":"Ariana Grande","artist_relations":{"name":"artist"}}
+{"name":"Ariana Grande","jukebox_relations":{"name":"artist"}}
 
-POST music-5_6/_doc/3?routing=1
-{"song":"All of Me","artist_relations":{"name":"song","parent":1}}
+POST jukebox/_doc/3?routing=1
+{
+    "song":"All of Me",
+    "jukebox_relations": { "name": "song", "parent": 1 }
+}
 
-POST music-5_6/_doc/4?routing=1
-{"song":"Beauty and the Beast","artist_relations":{"name":"song","parent":1}}
+POST jukebox/_doc/4?routing=1
+{
+    "song": "Beauty and the Beast",
+    "jukebox_relations": { "name": "song", "parent": 1 }
+}
 
-POST music-5_6/_doc/5?routing=2
-{"song":"Beauty and the Beast","artist_relations":{"name":"song","parent":2}}
+POST jukebox/_doc/5?routing=2
+{
+    "song": "Beauty and the Beast",
+    "jukebox_relations": { "name": "song", "parent": 2 }
+}
 
-POST music-5_6/_bulk?routing=3
+POST jukebox/_bulk?routing=3
 {"index":{"_id":"l-1"}}
-{"user":"Gabriel","artist_relations":{"name":"user","parent":3}}
+{"user":"Gabriel","jukebox_relations":{"name":"user","parent":3}}
 {"index":{"_id":"l-2"}}
-{"user":"Berte","artist_relations":{"name":"user","parent":3}}
+{"user":"Berte","jukebox_relations":{"name":"user","parent":3}}
 {"index":{"_id":"l-3"}}
-{"user":"Emma","artist_relations":{"name":"user","parent":3}}
+{"user":"Emma","jukebox_relations":{"name":"user","parent":3}}
 
-POST music-5_6/_create/l-4?routing=4
-{"user":"Berte","artist_relations":{"name":"user","parent":4}}
-POST music-5_6/_create/l-5?routing=5
-{"user":"Emma","artist_relations":{"name":"user","parent":5}}
+POST jukebox/_create/l-4?routing=4
+{
+    "user": "Berte",
+    "jukebox_relations": { "name": "user", "parent": 4 }
+}
+POST jukebox/_create/l-5?routing=5
+{
+    "user": "Emma",
+    "jukebox_relations": { "name": "user", "parent": 5 }
+}
 
 Search for all songs (child) of an artist (parent).
 
-GET music-5_6/_search
+GET jukebox/_search
 {
-  "query": {
-    "has_parent": {
-      "parent_type": "artist",
-      "query": { "match": { "name": "John Legend" } }
+    "query": {
+        "has_parent": {
+            "parent_type": "artist",
+            "query": { "match": { "name": "John Legend" } }
+        }
     }
-  }
 }
 
 search for all user-likes (grandchild of the artist) of a song (child of the artist)
-GET music-5_6/_search
+GET jukebox/_search
 {
-  "query": {
-    "has_parent": {
-      "parent_type": "song",
-      "query": {
-        "match": { "song": "all of Me" }
-      }
+    "query": {
+        "has_parent": {
+            "parent_type": "song",
+            "query": {
+                "match": { "song": "all of Me" }
+            }
+        }
     }
-  }
 }
 
 Searching for all artists (parents) that have one to ten (min_children and max_children) songs
-GET music/_search
+GET jukebox/_search
 {
-  "query": {
-    "has_child": {
-      "type": "song",
-      "min_children": 1, "max_children": 10, 
-      "query": { "match_all": {} }
+    "query": {
+        "has_child": {
+            "type": "song",
+            "min_children": 1, 
+            "max_children": 10, 
+            "query": { "match_all": {} }
+        }
     }
-  }
 }
 
 access a child document
-GET music-5_6/_doc/3?routing=1
-{
-  "_index": "music-5_6",
-  "_type": "doc",
-  "_id": "3",
-  "_version": 3,
-  "_routing": "1",
-  "found": true,
-  "_source": {
-    "song": "All of Me",
-    "artist_relations": {
-      "name": "song",
-      "parent": 1
-    }
-  }
-}
+GET jukebox/_doc/3?routing=1
 
 * Updating Child Documents
     * One of the significant benefits of a parent-child relationship is the ability to modify a child 
     object independent of the parent.
-POST music-5_6/_update/5?routing=2
+POST jukebox/_update/5?routing=2
 {
- "song": "Beauty and the Beast (2017)"
+    "doc": {
+        "song": "Beauty and the Beast (2017)"
+    }
 }
 
 ### Aggregations
 * count of user likes and see the user names that liked that song
 
-GET music-5_6/_search
+GET jukebox/_search
 {
     "query":{
         "bool":{
-            "must": {"match":{"song":"Beauty and the Beast"}},
+            "must": { "match": { "song": "Beauty and the Beast" } },
             "should":{
-                "has_child":{
-                    "type":"user",
-                    "query":{
-                        "match_all":{}
-                    },
-                    "inner_hits":{}
+                "has_child": {
+                    "type": "user",
+                    "query": { "match_all":{} },
+                    "inner_hits": {}
                 }
             }
         }
     },
     "aggs":{
-        "user_likes":{
-              "children":{"type":"user"}
-        }
+        "user_likes": { "children": { "type": "user" } }
     }
 }
