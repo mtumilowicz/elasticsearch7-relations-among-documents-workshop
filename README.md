@@ -429,37 +429,47 @@ PUT jukebox
     }
 }
 
-POST /jukebox/_bulk
-{"index":{"_id":1}}
-{"name":"John Legend","jukebox_relations":{"name":"artist"}}
-{"index":{"_id":2}}
-{"name":"Ariana Grande","jukebox_relations":{"name":"artist"}}
-
+POST jukebox/_create/1
+{
+    "name": "John Legend",
+    "jukebox_relations": { "name": "artist" }
+}
+POST jukebox/_create/2
+{
+    "name": "Ariana Grande",
+    "jukebox_relations": { "name": "artist" }
+}
 POST jukebox/_doc/3?routing=1
 {
     "song":"All of Me",
     "jukebox_relations": { "name": "song", "parent": 1 }
 }
-
 POST jukebox/_doc/4?routing=1
 {
     "song": "Beauty and the Beast",
     "jukebox_relations": { "name": "song", "parent": 1 }
 }
-
 POST jukebox/_doc/5?routing=2
 {
     "song": "Beauty and the Beast",
     "jukebox_relations": { "name": "song", "parent": 2 }
 }
 
-POST jukebox/_bulk?routing=3
-{"index":{"_id":"l-1"}}
-{"user":"Gabriel","jukebox_relations":{"name":"chosen_by","parent":3}}
-{"index":{"_id":"l-2"}}
-{"user":"Berte","jukebox_relations":{"name":"chosen_by","parent":3}}
-{"index":{"_id":"l-3"}}
-{"user":"Emma","jukebox_relations":{"name":"chosen_by","parent":3}}
+POST jukebox/_create/l-1?routing=3
+{
+    "user": "Gabriel",
+    "jukebox_relations": { "name": "chosen_by", "parent": 3 }
+}
+POST jukebox/_create/l-2?routing=3
+{
+    "user": "Berte",
+    "jukebox_relations": { "name": "chosen_by", "parent": 3 }
+}
+POST jukebox/_create/l-3?routing=3
+{
+    "user": "Emma",
+    "jukebox_relations": { "name": "chosen_by", "parent": 3 }
+}
 
 POST jukebox/_create/l-4?routing=4
 {
