@@ -455,28 +455,28 @@ POST jukebox/_doc/5?routing=2
     "jukebox_relations": { "name": "song", "parent": 2 }
 }
 
-POST jukebox/_create/l-1?routing=3
+POST jukebox/_create/u1?routing=3
 {
     "user": "Gabriel",
     "jukebox_relations": { "name": "chosen_by", "parent": 3 }
 }
-POST jukebox/_create/l-2?routing=3
+POST jukebox/_create/u2?routing=3
 {
     "user": "Berte",
     "jukebox_relations": { "name": "chosen_by", "parent": 3 }
 }
-POST jukebox/_create/l-3?routing=3
+POST jukebox/_create/u3?routing=3
 {
     "user": "Emma",
     "jukebox_relations": { "name": "chosen_by", "parent": 3 }
 }
 
-POST jukebox/_create/l-4?routing=4
+POST jukebox/_create/u4?routing=4
 {
     "user": "Berte",
     "jukebox_relations": { "name": "chosen_by", "parent": 4 }
 }
-POST jukebox/_create/l-5?routing=5
+POST jukebox/_create/u5?routing=5
 {
     "user": "Emma",
     "jukebox_relations": { "name": "chosen_by", "parent": 5 }
