@@ -5,105 +5,94 @@
 * https://blog.mimacom.com/parent-child-elasticsearch/
 
 ## object
-### object
-* OBJECTS WORK BEST FOR ONE - TO - ONE RELATIONSHIPS
-* You can run queries and aggregations on objects as you would do with flat doc-
-  uments. That’s because at the Lucene level they are flat documents.
-* No joins are involved. Because everything is in the same document, using
-  objects will give you the best performance
-* Updating a single object will re-index the whole document.
+* objects work best for one-to-one relationships
+* everything is in the same document - best performance
+* no joins
+* at the Lucene level they are flat documents
+    * running queries and aggregations on objects - dot notation
+* main drawback: updating a single object will re-index the whole document
 
-POST person-object/_create/1
-{
-    "name": "Michal",
-    "surname": "Tumilowicz",
-    "address": {
-        "street": "Tamka",
-        "city": "Warsaw"
-    }
-}
-
-PUT person-object
-{
-    "mappings": {
-        "properties": { 
-            "name": { "type": "text" },
-            "surname": { "type": "text" },
-            "address": { 
-                "properties": {
-                    "street": { "type": "text" },
-                    "city": { "type": "text" }
-                }
-            }
-        }
-    }
-}
-
-GET person-object/_search
-{
-    "query": {
-        "bool": {
-            "must": [
-                { "match": { "name": "Michal" } },
-                { "match": { "address.street": "Tamka" } },
-                { "match": { "address.city": "Warsaw" } }
-            ]
-        }
-    }
-}
-### array
-POST programming-groups/_create/1
-{
-    "name": "WJUG",
-    "events": [
-        {
-            "title": "elasticsearch",
-            "date": "2019-10-10"
-        },
-        {
-            "title": "java",
-            "date": "2018-10-10"
-        }
-    ]
-}
-
-PUT programming-groups
-{
-    "mappings": {
-        "properties": { 
-            "name": { "type": "text" },
-            "events": { 
-                "properties": {
-                    "title": { "type": "text" },
-                    "date": { "type": "date" }
-                }
-            }
-        }
-    }
-}
-
-GET programming-groups/_search
-{
-    "query": {
-        "bool": {
-            "must": [
-                {
-                    "term": {
-                        "events.title": "elasticsearch"
+### example
+* single
+    * `mappings.properties`
+        ```
+        "mappings": {
+            "properties": { 
+                "location": { 
+                    "properties": {
+                        "name": { "type": "text" },
+                        "geolocation": { "type": "geo_point" }
                     }
+                }
+            }
+        }
+        ```
+    * original document
+        ```
+        {
+            "location": {
+                "name": "Warsaw",
+                "geolocation": {
+                    "lat": 52.22977,
+                    "lon": 21.01178
+                }
+            }
+        }
+        ```
+    * document stored in Lucene
+        ```
+        {
+            "location.name": "Warsaw",
+            "location.geolocation.lat": 52.22977
+            "location.geolocation.lon": 21.01178
+        }
+        ```
+    * query
+        ```
+        { "match": { "object.field": "value" } }
+        ```
+* array
+    * `mappings.properties`
+        ```
+        "mappings": {
+            "properties": { 
+                "location": { 
+                    "properties": {
+                        "name": { "type": "text" },
+                        "geolocation": { "type": "geo_point" }
+                    }
+                }
+            }
+        }
+        ```
+    * original document
+        ```
+        {
+            "location": [
+                {
+                    "name": "Warsaw",
+                    "geolocation": {
+                        "lat": 52.22977,
+                        "lon": 21.01178
                 },
                 {
-                    "range": {
-                        "events.date": {
-                            "from": "2018-01-01",
-                            "to": "2019-01-01"
-                        }
-                    }
+                    "name": "Cracow",
+                    "geolocation": {
+                        "lat": 50.06143,
+                        "lon": 19.93658
                 }
             ]
         }
-    }
-}
+        ```
+    * document stored in Lucene
+        ```
+        {
+            "location.name": ["Warsaw", "Cracow"]
+            "location.geolocation.lat": [52.22977, 50.06143]
+            "location.geolocation.lon": [21.01178, 19.93658]
+        }
+        ```
+        * note that document is not aware of boundaries between objects
 
 ## nested
 * Internally, nested documents are indexed as different
