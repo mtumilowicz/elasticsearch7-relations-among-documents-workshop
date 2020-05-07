@@ -1,5 +1,6 @@
+# object
 ## single case
-1. we want to index document like that
+1. we want to index document
     * note that in address we will have always single object (not an array)
     ```
     {
@@ -16,7 +17,9 @@
     PUT person-object
     {
         "mappings": {
-            "properties": { 
+            "properties": {
+                "name": { "type": "text" },
+                "surname": { "type": "text" },
                 ...
             }
         }
@@ -52,3 +55,38 @@
     * use term for name
 1. find all groups that have events concerning "elasticsearch" and took place in 2018
     * hint: term, range
+# nested
+## single case
+1. we want to index document
+    * note that in address we will have always single object (not an array)
+    ```
+    {
+        "name": "Michal",
+        "surname": "Tumilowicz",
+        "address": {
+            "street": "Tamka",
+            "city": "Warsaw"
+        }
+    }
+   ```
+1. propose mapping as a nested object
+    ```
+    PUT person-nested
+    {
+        "mappings": {
+            "properties": { 
+                "name": { "type": "text" },
+                "surname": { "type": "text" },
+                ...
+            }
+        }
+    }
+    ```
+1. index document
+    ```
+    POST person-nested/_create/1
+    ```
+1. find by each field
+    * hint: `query.bool.must.nested` with path
+1. find by each field and show nested documents that matches the query
+    * hint: `inner_hits`

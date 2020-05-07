@@ -16,14 +16,10 @@
 * single
     * `mappings.properties`
         ```
-        "mappings": {
-            "properties": { 
-                "location": { 
-                    "properties": {
-                        "name": { "type": "text" },
-                        "geolocation": { "type": "geo_point" }
-                    }
-                }
+        "location": { 
+            "properties": {
+                "name": { "type": "text" },
+                "geolocation": { "type": "geo_point" }
             }
         }
         ```
@@ -54,14 +50,10 @@
 * array
     * `mappings.properties`
         ```
-        "mappings": {
-            "properties": { 
-                "location": { 
-                    "properties": {
-                        "name": { "type": "text" },
-                        "geolocation": { "type": "geo_point" }
-                    }
-                }
+        "location": { 
+            "properties": {
+                "name": { "type": "text" },
+                "geolocation": { "type": "geo_point" }
             }
         }
         ```
@@ -95,101 +87,47 @@
         * note that document is not aware of boundaries between objects
 
 ## nested
-* Internally, nested documents are indexed as different
-  Lucene documents
-* At the Lucene level, Elasticsearch will index the root document and all the members
-  objects in separate documents. But it will put them in a single block
+* at the Lucene level, Elasticsearch will index the root document and all the members 
+objects in separate documents
+    * it will put them in a single block
 * Documents of a block will always stay together, ensuring they get fetched and queried
   with the minimum number of operations.
-* Inner objects must have a nested mapping, to get them indexed as separate
-documents in the same block.
-* Nested queries and filters must be used to make use of those blocks while
-searching.
-* There are nested queries,
-  filters, and aggregations that help you achieve this. 
-  * Running these special queries and
-  aggregations will trigger Elasticsearch to join the different Lucene documents within
-  the same block and treat the resulting data as the same Elasticsearch document
-* Elasticsearch needs to do some extra work to join multiple documents within
-  a block
-    *  But because of the underlying implementation using blocks, these queries
-       and aggregations are much faster than they would be if you had to join completely
-       separate Elasticsearch documents
-* Because nested documents are
-  stuck together, updating or adding one inner document requires re-indexing the
-  whole ensemble
-* Using the nested-type
-  approach, Elasticsearch will have to re-index the group documents with the new event
-  and all existing events, which is much slower.
-### object
-PUT person-nested
-{
-    "mappings": {
-        "properties": { 
-            "name": { "type": "text" },
-            "surname": { "type": "text" },
-            "address": {
-                "type": "nested",
-                "properties": {
-                    "street": { "type": "text" },
-                    "city": { "type": "text" }
-                }
+* specify nested mapping to get them indexed as separate documents in the same block
+* nested queries and filters will trigger Elasticsearch to join the different Lucene documents within
+  the same block and treat the resulting data as single document
+* some extra work to join multiple documents within a block
+    *  much faster than joining documents that not reside in same blocks
+* updating or adding one inner document requires re-indexing the whole block
+
+### example
+* single
+    * `mappings.properties`
+        ```
+        "location": {
+            "type": "nested",
+            "properties": {
+                "name": { "type": "text" },
+                "geolocation": { "type": "geo_point" }
             }
         }
-    }
-}
-
-// run this query against person-object
-GET person-nested/_search
-{
-    "query": {
-        "bool": {
-            "must": [
-                { "match": { "name": "Michal" } },
-                { 
-                    "nested": {
-                        "path": "address",
-                        "query" : {
-                            "bool": {
-                                "must": [
-                                    { "match": { "address.street": "Tamka" } },
-                                    { "match": { "address.city": "Warsaw" } }
-                                ]
-                            }
-                        }
-                    }
-                }
-            ]
+        ```
+    * query
+        ```
+        "nested": {
+            "path": "location",
+            "query" : { "match": { "location.name": "Warsaw" } }
         }
-    }
-}
-
-GET person-nested/_search
-{
-    "query": {
-        "bool": {
-            "must": [
-                { "match": { "name": "Michal" } },
-                { 
-                    "nested": {
-                        "path": "address",
-                        "query" : {
-                            "bool": {
-                                "must": [
-                                    { "match": { "address.street": "Tamka" } },
-                                    { "match": { "address.city": "Warsaw" } }
-                                ]
-                            }
-                        },
-                        "inner_hits": {}
-                    }
-                }
-            ]
+        ```
+    * query with inner hits
+        * inner hits - additional nested hits that caused a search hit to match
+        ```
+        "nested": {
+            "path": "location",
+            "query" : { "match": { "location.name": "Warsaw" } },
+            "inner_hits": {}
         }
-    }
-}
-
-### array
+        ```
+* array
 PUT programming-groups-nested
 {
     "mappings": {
@@ -270,7 +208,7 @@ GET programming-groups-nested/_search
                 }
             ]
         }
-    }   d
+    }
 }
 
 ### aggregations
