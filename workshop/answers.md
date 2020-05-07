@@ -1,19 +1,7 @@
 # object
 
 ## single case
-1. we want to index document like that
-    * note that in address we will have always single object (not an array)
-    ```
-    {
-        "name": "Michal",
-        "surname": "Tumilowicz",
-        "address": {
-            "street": "Tamka",
-            "city": "Warsaw"
-        }
-    }   
-    ```
-1. map as a single object
+1. propose mapping as a single object
     ```
     PUT person-object
     {
@@ -59,24 +47,7 @@
     }
     ```
 ## array case
-1. we want to index document like that
-    * note that in events we will many objects (array)
-    ```
-    {
-        "name": "WJUG",
-        "events": [
-            {
-                "title": "elasticsearch",
-                "date": "2019-10-10"
-            },
-            {
-                "title": "java",
-                "date": "2018-10-10"
-            }
-        ]
-    }
-    ```
-1. try to map it exactly like with the single case is not proper
+1. propose mapping with an array
     ```
     PUT programming-groups
     {
