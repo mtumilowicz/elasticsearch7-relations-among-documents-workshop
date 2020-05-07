@@ -128,88 +128,41 @@ objects in separate documents
         }
         ```
 * array
-PUT programming-groups-nested
-{
-    "mappings": {
-        "properties": { 
-            "name": { "type": "text" },
-            "eventTitles": { "type": "text" },
-            "events": {
-                "type": "nested",
-                "properties": {
-                    "title": { 
-                        "type": "text",
-                        "copy_to": "eventTitles" 
-                    },
-                    "date": { "type": "date" }
-                }
+    * `mappings.properties`
+        ```
+        "location": {
+            "type": "nested",
+            "properties": {
+                "name": { "type": "text" },
+                "geolocation": { "type": "geo_point" }
             }
         }
-    }
-}
-
-POST programming-groups-nested/_create/1
-{
-    "name": "WJUG",
-    "events": [
-        {
-            "title": "elasticsearch",
-            "date": "2019-10-10"
-        },
-        {
-            "title": "java",
-            "date": "2018-10-10"
-        }
-    ]
-}
-
-GET programming-groups-nested/_search
-{
-    "query": {
+        ```
+    * query
+        ```
         "nested": {
-            "path": "events",
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "term": {
-                                "events.title": "elasticsearch"
-                            }
-                        },
-                        {
-                            "range": {
-                                "events.date": {
-                                    "from": "2018-01-01",
-                                    "to": "2019-01-01"
-                                }
-                            }
-                        }
-                    ]
-                }
+            "path": "location",
+            "query" : { "match": { "location.name": "Warsaw" } }
+        }
+        ```
+* note that we could mix nested and objects
+    * `copy_to` - allows you to copy the values of multiple fields into a group field, which can then 
+    be queried as a single field
+        * original _source field will not be modified to show the copied values
+    * `mappings.properties`
+        ```
+        "locationNames": { "type": "text" },
+        "location": {
+            "type": "nested",
+            "properties": {
+                "name": { 
+                    "type": "text",
+                    "copy_to": "locationNames"      
+            },
+                "geolocation": { "type": "geo_point" }
             }
         }
-    }   
-}
-
-GET programming-groups-nested/_search
-{
-    "query": {
-        "bool": {
-            "must": [
-                {
-                    "term": {
-                        "eventTitles": "elasticsearch"
-                    }
-                },
-                {
-                    "term": {
-                        "eventTitles": "java"
-                    }
-                }
-            ]
-        }
-    }
-}
+        ```
 
 ### aggregations
 PUT league
