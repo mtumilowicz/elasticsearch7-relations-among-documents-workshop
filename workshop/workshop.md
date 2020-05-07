@@ -119,3 +119,11 @@
     * hint: term, range
 1. find all groups that have events with title java and elasticsearch
     * hint: recreate mapping and use `copy_to`
+## aggregations
+1. run data from `league.md`
+1. count players that played at least 30 games for each team 
+    * verify outputs when size = 0
+    * hint: group by name, nested aggregation, define path, filter with range
+1. count teams with at least one player who played at least 30 games
+    * verify outputs when size = 0
+    * hint: group by name, nested aggregation, define path, filter with range and reverse_nested

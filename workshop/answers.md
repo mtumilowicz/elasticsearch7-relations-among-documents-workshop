@@ -262,3 +262,56 @@
         }
     }   
     ```
+## aggregations
+1. run data from `league.md`
+1. count players that played at least 30 games for each team 
+    * note that setting size to 0 avoids executing the fetch phase of the search making 
+    the request more efficient
+    ```
+    GET league/_search
+    {
+        "size": 0,
+        "aggs": {
+            "by_team": {
+                "terms": { "field":"name" },
+                "aggs": {
+                    "at_least_30_games": {
+                        "nested": { "path": "players" },
+                        "aggs": {
+                            "count_players": {
+                                "filter":{ "range": { "players.games": { "gte": 30 } } }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ```
+1. count teams with at least one player who played at least 30 games
+    ```
+    GET league/_search
+    {
+        "size": 0,
+        "aggs": {
+            "by_team": {
+                "terms": { "field": "name" },
+                "aggs": {
+                    "at_least_30_games": {
+                        "nested": { "path": "players" },
+                        "aggs": {
+                            "count_players": {
+                                "filter": { "range":{ "players.games": {"gte": 30} } },
+                                "aggs": {
+                                    "team_has_players_at_least_30_games": {
+                                        "reverse_nested": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ```
