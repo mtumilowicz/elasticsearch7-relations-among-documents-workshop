@@ -187,7 +187,35 @@ objects in separate documents
             }
         }
         ```
-* array
+    1. indexing
+        * parent
+            ```
+            POST index-name/_doc/id
+            {
+                ...,
+                "jukebox_relations": "parent"
+            }
+            ```
+        * child
+            ```
+            POST index-name/_doc/childId?routing=parentId
+            {
+                ...,
+                "jukebox_relations": { "name": "child", "parent": parentId }
+            }
+            ```
+    1. query
+        * `has_child`
+            * returns parent documents whose joined child documents match a provided query
+        * `has_parent`
+            * returns child documents whose joined parent document matches a provided query
+        ```
+        "has_parent": {
+            "parent_type": "parent",
+            "query": { "match": { "name": "Michal" } }
+        }
+        ```
+        
 * aggregations
-    * has_child
-    * children
+    * `children`
+        * special single bucket aggregation that selects child documents that have the specified type

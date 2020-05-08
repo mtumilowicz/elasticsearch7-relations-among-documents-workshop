@@ -170,23 +170,4 @@
     * `has_child`, `type`, `min_children`
 ## aggregations
 1. count user likes for given song and show users that liked that song
-    ```
-    GET jukebox/_search
-    {
-        "query": {
-            "bool": {
-                "must": { "match": { "song": "Battle of Evermore" } },
-                "should": {
-                    "has_child": {
-                        "type": "chosen_by",
-                        "query": { "match_all": {} },
-                        "inner_hits": {}
-                    }
-                }
-            }
-        },
-        "aggs":{
-            "user_likes": { "children": { "type": "chosen_by" } }
-        }
-    }
-    ```
+    * query for likes then aggregate using children
