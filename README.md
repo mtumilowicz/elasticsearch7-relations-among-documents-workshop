@@ -1,9 +1,24 @@
-* https://www.factweavers.com/blog/join-in-elasticsearch/
-* https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-request-body.html#request-body-search-inner-hits
-* https://www.waitingforcode.com/elasticsearch/reverse-nested-aggregation-in-elasticsearch/read
-* https://www.elastic.co/guide/en/elasticsearch/reference/current/parent-join.html
-* https://blog.mimacom.com/parent-child-elasticsearch/
-* https://www.manning.com/books/elasticsearch-in-action
+# elasticsearch7-relations-among-documents-workshop
+
+* reference
+    * https://www.factweavers.com/blog/join-in-elasticsearch/
+    * https://www.elastic.co/guide/en/elasticsearch/reference/7.6/search-request-body.html#request-body-search-inner-hits
+    * https://www.waitingforcode.com/elasticsearch/reverse-nested-aggregation-in-elasticsearch/read
+    * https://www.elastic.co/guide/en/elasticsearch/reference/current/parent-join.html
+    * https://blog.mimacom.com/parent-child-elasticsearch/
+    * https://www.manning.com/books/elasticsearch-in-action
+
+## preface
+* goals of this workshop
+    * https://github.com/mtumilowicz/java12-elasticsearch-inverted-index-workshop
+    * https://github.com/mtumilowicz/elasticsearch7-query-filter-aggregation-workshop
+    * introduction to the defining relations between documents
+    * show difference between types od relations: object, nested and join
+    * simple examples of queries and aggregations for inner documents
+* in `docker-compose` there is elasticsearch + kibana (7.6) prepared for local testing
+    * cd `docker/compose`
+    * `docker-compose up -d`
+* workshop and answers are in `workshop` directory
 
 ## object
 * objects work best for one-to-one relationships

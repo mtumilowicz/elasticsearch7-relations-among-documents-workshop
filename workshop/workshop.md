@@ -112,7 +112,7 @@
 1. find all groups that have events with title java and elasticsearch
     * hint: recreate mapping and use `copy_to`
 ## aggregations
-1. run data from `league.md`
+1. run data from `workshop/data/league.md`
 1. count players that played at least 30 games for each team 
     * verify outputs when size = 0
     * hint: group by name, nested aggregation, define path, filter with range
@@ -146,7 +146,7 @@
         * artist has many songs
         * song has many likes
 1. propose mapping as a join
-1. fill index with `jukebox.md`
+1. fill index with `workshop/data/jukebox.md`
     * note how we are routing appropriate relationships to the same shards
 1. update song 'Whole lotta love' to 'Whole Lotta Love' using partial update
     * pay attention to routing

@@ -264,7 +264,6 @@
     }   
     ```
 ## aggregations
-1. run data from `league.md`
 1. count players that played at least 30 games for each team 
     ```
     GET league/_search
