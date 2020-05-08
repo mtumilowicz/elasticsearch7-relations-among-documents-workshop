@@ -14,7 +14,8 @@
 * goals of this workshop
     * https://github.com/mtumilowicz/java12-elasticsearch-inverted-index-workshop
     * https://github.com/mtumilowicz/elasticsearch7-query-filter-aggregation-workshop
-    * introduction to the defining relations between documents
+    * introduction to inner documents
+    * defining relations between documents
     * show difference between types od relations: object, nested and join
     * simple examples of queries and aggregations for inner documents
 * in `docker-compose` there is elasticsearch + kibana (7.6) prepared for local testing
