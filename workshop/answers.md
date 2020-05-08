@@ -88,6 +88,7 @@
         }
     }
     ```
+   
 # nested
 ## single case
 1. propose mapping as a nested object
@@ -312,6 +313,102 @@
                     }
                 }
             }
+        }
+    }
+    ```
+
+# join
+1. propose mapping as a join
+    ```
+    PUT jukebox
+    {
+        "mappings": {
+            "properties": {
+                "artist": { "type": "text" },
+                "song": { "type": "text" },
+                "chosen_by": { "type": "keyword" },
+                "jukebox_relations": {
+                    "type": "join",
+                    "relations": {
+                        "artist": "song",
+                        "song": "chosen_by"
+                    }
+                }
+            }
+        }
+    }
+    ```
+1. update song 'Whole lotta love' to 'Whole Lotta Love' using partial update
+    ```
+    POST jukebox/_update/3?routing=1
+    {
+        "doc": {
+            "song": "Whole Lotta Love"
+        }
+    }
+    ```
+1. verify that name changed
+    ```
+    GET jukebox/_doc/3?routing=1
+    ```
+1. find all songs of an artist Led Zeppelin
+    ```
+    GET jukebox/_search
+    {
+        "query": {
+            "has_parent": {
+                "parent_type": "artist",
+                "query": { "match": { "name": "Led Zeppelin" } }
+            }
+        }
+    }
+    ```
+1. find all users that liked a song
+    ```
+    GET jukebox/_search
+    {
+        "query": {
+            "has_parent": {
+                "parent_type": "song",
+                "query": {
+                    "match": { "song": "Whole Lotta Love" }
+                }
+            }
+        }
+    }
+    ```
+1. find all artists that have at least one song
+    ```
+    GET jukebox/_search
+    {
+        "query": {
+            "has_child": {
+                "type": "song",
+                "min_children": 1, 
+                "query": { "match_all": {} }
+            }
+        }
+    }
+    ```
+## aggregations
+1. count user likes for given song and show users that liked that song
+    ```
+    GET jukebox/_search
+    {
+        "query": {
+            "bool": {
+                "must": { "match": { "song": "Battle of Evermore" } },
+                "should": {
+                    "has_child": {
+                        "type": "chosen_by",
+                        "query": { "match_all": {} },
+                        "inner_hits": {}
+                    }
+                }
+            }
+        },
+        "aggs":{
+            "user_likes": { "children": { "type": "chosen_by" } }
         }
     }
     ```

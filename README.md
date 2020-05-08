@@ -158,157 +158,36 @@ objects in separate documents
                 "name": { 
                     "type": "text",
                     "copy_to": "locationNames"      
-            },
+                },
                 "geolocation": { "type": "geo_point" }
             }
         }
         ```
 * aggregations
     * `reverse_nested`
-    
+        * single bucket aggregation that enables aggregating on parent docs from nested documents
+        * must be defined inside a nested aggregation
+        * it joins back to the root / main document level
+            * it is configurable - `path`
+            
 ## join
-* The join datatype is a special field that creates parent/child relation within documents of the same index
+* creates parent/child relation within documents of the same index
+* ability to modify a child object independent of the parent
 
-PUT jukebox
-{
-    "mappings": {
-        "properties": {
-            "artist": { "type": "text" },
-            "song": { "type": "text" },
-            "chosen_by": { "type": "keyword" },
-            "jukebox_relations": {
-                "type": "join",
-                "relations": {
-                    "artist": "song",
-                    "song": "chosen_by"
-                }
+### example
+* single
+    1. `mappings.properties`
+        ```
+        "parent": { "type": "text" },
+        "child": { "type": "text" },
+        "jukebox_relations": {
+            "type": "join",
+            "relations": {
+                "parent": "child"
             }
         }
-    }
-}
-
-POST jukebox/_create/1
-{
-    "name": "John Legend",
-    "jukebox_relations": { "name": "artist" }
-}
-POST jukebox/_create/2
-{
-    "name": "Ariana Grande",
-    "jukebox_relations": { "name": "artist" }
-}
-POST jukebox/_doc/3?routing=1
-{
-    "song":"All of Me",
-    "jukebox_relations": { "name": "song", "parent": 1 }
-}
-POST jukebox/_doc/4?routing=1
-{
-    "song": "Beauty and the Beast",
-    "jukebox_relations": { "name": "song", "parent": 1 }
-}
-POST jukebox/_doc/5?routing=2
-{
-    "song": "Beauty and the Beast",
-    "jukebox_relations": { "name": "song", "parent": 2 }
-}
-
-POST jukebox/_create/u1?routing=3
-{
-    "user": "Gabriel",
-    "jukebox_relations": { "name": "chosen_by", "parent": 3 }
-}
-POST jukebox/_create/u2?routing=3
-{
-    "user": "Berte",
-    "jukebox_relations": { "name": "chosen_by", "parent": 3 }
-}
-POST jukebox/_create/u3?routing=3
-{
-    "user": "Emma",
-    "jukebox_relations": { "name": "chosen_by", "parent": 3 }
-}
-
-POST jukebox/_create/u4?routing=4
-{
-    "user": "Berte",
-    "jukebox_relations": { "name": "chosen_by", "parent": 4 }
-}
-POST jukebox/_create/u5?routing=5
-{
-    "user": "Emma",
-    "jukebox_relations": { "name": "chosen_by", "parent": 5 }
-}
-
-Search for all songs (child) of an artist (parent).
-
-GET jukebox/_search
-{
-    "query": {
-        "has_parent": {
-            "parent_type": "artist",
-            "query": { "match": { "name": "John Legend" } }
-        }
-    }
-}
-
-search for all user-likes (grandchild of the artist) of a song (child of the artist)
-GET jukebox/_search
-{
-    "query": {
-        "has_parent": {
-            "parent_type": "song",
-            "query": {
-                "match": { "song": "all of Me" }
-            }
-        }
-    }
-}
-
-Searching for all artists (parents) that have one to ten (min_children and max_children) songs
-GET jukebox/_search
-{
-    "query": {
-        "has_child": {
-            "type": "song",
-            "min_children": 1, 
-            "max_children": 10, 
-            "query": { "match_all": {} }
-        }
-    }
-}
-
-access a child document
-GET jukebox/_doc/3?routing=1
-
-* Updating Child Documents
-    * One of the significant benefits of a parent-child relationship is the ability to modify a child 
-    object independent of the parent.
-POST jukebox/_update/5?routing=2
-{
-    "doc": {
-        "song": "Beauty and the Beast (2017)"
-    }
-}
-
-### Aggregations
-* count of user likes and see the user names that liked that song
-
-GET jukebox/_search
-{
-    "query":{
-        "bool":{
-            "must": { "match": { "song": "Beauty and the Beast" } },
-            "should":{
-                "has_child": {
-                    "type": "chosen_by",
-                    "query": { "match_all":{} },
-                    "inner_hits": {}
-                }
-            }
-        }
-    },
-    "aggs":{
-        "user_likes": { "children": { "type": "chosen_by" } }
-    }
-}
+        ```
+* array
+* aggregations
+    * has_child
+    * children
