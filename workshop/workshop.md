@@ -26,9 +26,6 @@
     }
     ```
 1. index document
-    ```
-    POST person-object/_create/1
-    ```
 1. find by each field
     * hint: `query.bool.must.match`, dot notation
     
@@ -55,7 +52,7 @@
     * use term for name
 1. find all groups that have events concerning "elasticsearch" and took place in 2018
     * hint: term, range
-    
+
 # nested
 ## single case
 1. we want to index document
@@ -84,9 +81,6 @@
     }
     ```
 1. index document
-    ```
-    POST person-nested/_create/1
-    ```
 1. find by each field
     * hint: `query.bool.must.nested` with path
 1. find by each field and show nested documents that matches the query
@@ -113,9 +107,6 @@
     * mapping is exactly the same as with the single object
     * use term for name
 1. index document
-    ```
-    POST programming-groups-nested/_create/1   
-    ```
 1. find all groups that have events concerning "elasticsearch" and took place in 2018
     * hint: term, range
 1. find all groups that have events with title java and elasticsearch

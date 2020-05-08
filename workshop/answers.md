@@ -88,7 +88,7 @@
         }
     }
     ```
-   
+
 # nested
 ## single case
 1. propose mapping as a nested object
