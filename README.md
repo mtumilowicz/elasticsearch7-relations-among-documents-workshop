@@ -3,14 +3,15 @@
 * https://www.waitingforcode.com/elasticsearch/reverse-nested-aggregation-in-elasticsearch/read
 * https://www.elastic.co/guide/en/elasticsearch/reference/current/parent-join.html
 * https://blog.mimacom.com/parent-child-elasticsearch/
+* https://www.manning.com/books/elasticsearch-in-action
 
 ## object
 * objects work best for one-to-one relationships
 * everything is in the same document - best performance
 * no joins
 * at the Lucene level they are flat documents
-    * running queries and aggregations on objects - dot notation
 * main drawback: updating a single object will re-index the whole document
+* in case of arrays - document is not aware of boundaries between objects
 
 ### example
 * single
@@ -45,7 +46,7 @@
         ```
     * query
         ```
-        { "match": { "object.field": "value" } }
+        "query" : { "match": { "location.name": "Warsaw" } }
         ```
 * array
     * `mappings.properties`
@@ -84,20 +85,16 @@
             "location.geolocation.lon": [21.01178, 19.93658]
         }
         ```
-        * note that document is not aware of boundaries between objects
 
 ## nested
-* at the Lucene level, Elasticsearch will index the root document and all the members 
-objects in separate documents
-    * it will put them in a single block
-* Documents of a block will always stay together, ensuring they get fetched and queried
-  with the minimum number of operations.
-* specify nested mapping to get them indexed as separate documents in the same block
-* nested queries and filters will trigger Elasticsearch to join the different Lucene documents within
-  the same block and treat the resulting data as single document
+* at the Lucene level the root document and all the members objects in separate documents in a single block
+* documents in the block will always stay together, ensuring they get fetched and queried with the minimum 
+number of operations
+* nested queries and filters will join the different Lucene documents within the same block and treat 
+the resulting data as single document
+* main drawback: updating or adding one inner document requires re-indexing the whole block
 * some extra work to join multiple documents within a block
-    *  much faster than joining documents that not reside in same blocks
-* updating or adding one inner document requires re-indexing the whole block
+    * much faster than joining documents that not reside in same blocks
 
 ### example
 * single
@@ -112,6 +109,7 @@ objects in separate documents
         }
         ```
     * query
+        * `path` - path to the nested object you wish to search
         ```
         "nested": {
             "path": "location",
@@ -119,7 +117,7 @@ objects in separate documents
         }
         ```
     * query with inner hits
-        * inner hits - additional nested hits that caused a search hit to match
+        * `inner_hits` - additional nested hits that caused a search hit to match
         ```
         "nested": {
             "path": "location",
@@ -148,7 +146,7 @@ objects in separate documents
 * note that we could mix nested and objects
     * `copy_to` - allows you to copy the values of multiple fields into a group field, which can then 
     be queried as a single field
-        * original _source field will not be modified to show the copied values
+        * original `_source` field will not be modified to show the copied values
     * `mappings.properties`
         ```
         "locationNames": { "type": "text" },
@@ -169,16 +167,16 @@ objects in separate documents
         * must be defined inside a nested aggregation
         * it joins back to the root / main document level
             * it is configurable - `path`
-            
+    * setting size to 0 avoids executing the fetch phase of the search making the request more efficient
 
 ## join
 * creates parent/child relation within documents of the same index
 * ability to modify a child object independent of the parent
 * comparing to nested - searches are slower
 * comparing to nested - indexing, updating, and deleting is faster
-* useful for many documents that have to be indexed asynchronously
-* it is required to index the lineage of a parent in the same shard so 
-child documents have to be routed using their greater parent id
+* useful when many connected documents have to be indexed asynchronously
+* children and parent have to be in the same shard
+    * indexing - explicit routed using parent id
 
 ### example
 * single
@@ -222,5 +220,4 @@ child documents have to be routed using their greater parent id
         }
         ```
 * aggregations
-    * `children`
-        * special single bucket aggregation that selects child documents that have the specified type
+    * `children` - special single bucket aggregation that selects child documents that have the specified type
