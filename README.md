@@ -170,9 +170,15 @@ objects in separate documents
         * it joins back to the root / main document level
             * it is configurable - `path`
             
+
 ## join
 * creates parent/child relation within documents of the same index
 * ability to modify a child object independent of the parent
+* comparing to nested - searches are slower
+* comparing to nested - indexing, updating, and deleting is faster
+* useful for many documents that have to be indexed asynchronously
+* it is required to index the lineage of a parent in the same shard so 
+child documents have to be routed using their greater parent id
 
 ### example
 * single
@@ -215,7 +221,6 @@ objects in separate documents
             "query": { "match": { "name": "Michal" } }
         }
         ```
-        
 * aggregations
     * `children`
         * special single bucket aggregation that selects child documents that have the specified type
