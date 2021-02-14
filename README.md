@@ -136,6 +136,8 @@ the resulting data as single document
         ```
     * query with inner hits
         * `inner_hits` - additional nested hits that caused a search hit to match
+            * in many cases, it’s very useful to know which inner nested objects caused
+            certain information to be returned
         ```
         "nested": {
             "path": "location",
